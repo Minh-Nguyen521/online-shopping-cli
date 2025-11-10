@@ -27,7 +27,7 @@ javac -d build/classes \
       src/main/java/com/onlineshopping/*.java \
       src/main/java/com/onlineshopping/model/*.java \
       src/main/java/com/onlineshopping/database/*.java \
-      src/main/java/com/onlineshopping/db/*.java \
+      src/main/java/com/onlineshopping/dbquery/*.java \
       src/main/java/com/onlineshopping/service/*.java \
       src/main/java/com/onlineshopping/ui/*.java \
       src/main/java/com/onlineshopping/util/*.java
