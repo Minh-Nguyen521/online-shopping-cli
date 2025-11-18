@@ -61,7 +61,7 @@ public class ConsoleUI {
 
     private void showMainMenu() {
         Customer customer = shoppingService.getCurrentCustomer();
-        System.out.printf("\n=== Welcome, %s! ===\n", customer.getFullName());
+        System.out.printf("\n=== Welcome, %s! ===\n", customer.getUsername());
         System.out.println("1. Browse Products");
         System.out.println("2. Search Products");
         System.out.println("3. View Cart");
@@ -109,19 +109,10 @@ public class ConsoleUI {
         System.out.print("Username: ");
         String username = scanner.nextLine().trim();
         
-        System.out.print("Email: ");
-        String email = scanner.nextLine().trim();
-        
         System.out.print("Password: ");
         String password = scanner.nextLine().trim();
         
-        System.out.print("Full Name: ");
-        String fullName = scanner.nextLine().trim();
-        
-        System.out.print("Address: ");
-        String address = scanner.nextLine().trim();
-        
-        if (shoppingService.registerCustomer(username, email, password, fullName, address)) {
+        if (shoppingService.registerCustomer(username, password)) {
             System.out.println("Registration successful! You can now login.");
         } else {
             System.out.println("Registration failed. Please try again.");
@@ -341,15 +332,14 @@ public class ConsoleUI {
         
         System.out.println("\n=== Customer Leaderboard ===");
         System.out.printf("%-5s %-20s %-30s %-10s%n", 
-                         "Rank", "Username", "Full Name", "Score");
-        System.out.println("─".repeat(67));
+                         "Rank", "Username", "Score");
+        System.out.println("─".repeat(40));
         
         for (int i = 0; i < leaderboard.size(); i++) {
             Customer customer = leaderboard.get(i);
-            System.out.printf("%-5d %-20s %-30s %-10d%n",
+            System.out.printf("%-5d %-25s %-10d%n",
                              (i + 1),
-                             truncateString(customer.getUsername(), 20),
-                             truncateString(customer.getFullName(), 30),
+                             truncateString(customer.getUsername(), 25),
                              customer.getRanking());
         }
     }

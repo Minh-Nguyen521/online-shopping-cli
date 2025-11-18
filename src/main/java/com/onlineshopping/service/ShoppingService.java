@@ -4,7 +4,6 @@ import com.onlineshopping.dbquery.CustomerDB;
 import com.onlineshopping.dbquery.OrderDB;
 import com.onlineshopping.dbquery.ProductDB;
 import com.onlineshopping.model.*;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.List;
 
@@ -42,19 +41,13 @@ public class ShoppingService {
     }
 
     // Customer Management
-    public boolean registerCustomer(String username, String email, String password, String fullName, String address) {
+    public boolean registerCustomer(String username, String password) {
         if (customerDB.usernameExists(username)) {
             System.out.println("Username already exists!");
             return false;
         }
 
-        if (customerDB.emailExists(email)) {
-            System.out.println("Email already exists!");
-            return false;
-        }
-
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        Customer customer = new Customer(username, email, hashedPassword, fullName, address);
+        Customer customer = new Customer(username, password);
 
         return customerDB.addCustomer(customer);
     }
