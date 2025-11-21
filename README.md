@@ -62,11 +62,7 @@
 ### Customers Table
 - `id` (PRIMARY KEY, AUTO INCREMENT)
 - `username` (UNIQUE, NOT NULL)
-- `email` (UNIQUE, NOT NULL)
-- `password_hash` (NOT NULL)
-- `full_name` (NOT NULL)
-- `address`
-- `ranking` (DEFAULT 0)
+- `password` (NOT NULL)
 - `created_at` (TIMESTAMP)
 
 ### Orders Table
