@@ -17,9 +17,7 @@ public class ConsoleUI {
         this.running = true;
     }
 
-    public void start() {
-        printWelcome();
-        
+    public void start() {        
         while (running) {
             if (shoppingService.isLoggedIn()) {
                 showMainMenu();
@@ -29,14 +27,6 @@ public class ConsoleUI {
         }
         
         scanner.close();
-    }
-
-    private void printWelcome() {
-        System.out.println("╔═══════════════════════════════════════╗");
-        System.out.println("║        Welcome to Online Shopping     ║");
-        System.out.println("║              CLI Application          ║");
-        System.out.println("╚═══════════════════════════════════════╝");
-        System.out.println();
     }
 
     private void showLoginMenu() {
@@ -66,10 +56,9 @@ public class ConsoleUI {
         System.out.println("2. Search Products");
         System.out.println("3. View Cart");
         System.out.println("4. View Order History");
-        System.out.println("5. View Leaderboard");
-        System.out.println("6. Update Password");
-        System.out.println("7. Admin Functions");
-        System.out.println("8. Logout");
+        System.out.println("5. Update Password");
+        System.out.println("6. Admin Functions");
+        System.out.println("7. Logout");
         System.out.print("Choose an option: ");
         
         String choice = scanner.nextLine().trim();
