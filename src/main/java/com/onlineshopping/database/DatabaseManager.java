@@ -51,7 +51,7 @@ public class DatabaseManager {
         return connection;
     }
 
-    private void initializeTables() {
+    public void initializeTables() {
         String[] createTableStatements = {
             // Products table
             """

@@ -1,17 +1,21 @@
 package com.onlineshopping.util;
 
 import com.onlineshopping.service.ShoppingService;
+import com.onlineshopping.database.DatabaseManager;
 
 public class SampleDataInitializer {
     private final ShoppingService shoppingService;
+    private final DatabaseManager databaseManager;
 
     public SampleDataInitializer() {
         this.shoppingService = new ShoppingService();
+        this.databaseManager = DatabaseManager.getInstance();
     }
 
     public void initializeSampleData() {
         System.out.println("Initializing sample data...");
-        
+        databaseManager.initializeTables();
+
         // Add sample products
         addSampleProducts();
         

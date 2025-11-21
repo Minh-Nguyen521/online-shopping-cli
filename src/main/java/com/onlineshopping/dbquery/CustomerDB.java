@@ -129,7 +129,7 @@ public class CustomerDB {
 
     public List<Customer> getAllCustomers() {
         List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM customers ORDER BY username";
+        String sql = "SELECT * FROM customers";
         
         try (Statement stmt = dbManager.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
