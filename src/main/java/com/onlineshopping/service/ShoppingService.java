@@ -212,7 +212,6 @@ public class ShoppingService {
             return false;
         }
         
-        // Restore stock for all items
         for (OrderItem item : activeOrder.getItems()) {
             Product product = productDB.getProductById(item.getProductId());
             if (product != null) {
@@ -231,7 +230,6 @@ public class ShoppingService {
         return orderDB.getOrdersByCustomerId(currentCustomer.getId());
     }
 
-    // Admin functions (for demonstration purposes)
     public boolean addProduct(String name, String description, double price, int stock, String category) {
         Product product = new Product(name, description, price, stock, category);
         return productDB.addProduct(product);
