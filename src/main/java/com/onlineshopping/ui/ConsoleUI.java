@@ -79,10 +79,9 @@ public class ConsoleUI {
             case "2" -> searchProducts();
             case "3" -> viewCart();
             case "4" -> viewOrderHistory();
-            case "5" -> viewLeaderboard();
-            case "6" -> updatePassword();
-            case "7" -> showAdminMenu();
-            case "8" -> {
+            case "5" -> updatePassword();
+            case "6" -> showAdminMenu();
+            case "7" -> {
                 shoppingService.logout();
                 System.out.println("Logged out successfully!");
             }
@@ -322,28 +321,6 @@ public class ConsoleUI {
         }
     }
 
-    private void viewLeaderboard() {
-        List<Customer> leaderboard = shoppingService.getCustomerLeaderboard();
-        
-        if (leaderboard.isEmpty()) {
-            System.out.println("\nNo customers found.");
-            return;
-        }
-        
-        System.out.println("\n=== Customer Leaderboard ===");
-        System.out.printf("%-5s %-20s %-30s %-10s%n", 
-                         "Rank", "Username", "Score");
-        System.out.println("─".repeat(40));
-        
-        for (int i = 0; i < leaderboard.size(); i++) {
-            Customer customer = leaderboard.get(i);
-            System.out.printf("%-5d %-25s %-10d%n",
-                             (i + 1),
-                             truncateString(customer.getUsername(), 25),
-                             customer.getRanking());
-        }
-    }
-
     private void updatePassword() {
         System.out.print("Enter new password: ");
         String newPassword = scanner.nextLine().trim();
@@ -369,7 +346,7 @@ public class ConsoleUI {
             case "1" -> addProduct();
             case "2" -> removeProduct();
             case "3" -> updateProduct();
-            case "4" -> {} // Do nothing, go back to main menu
+            case "4" -> {} // go back to main menu
             default -> System.out.println("Invalid option.");
         }
     }

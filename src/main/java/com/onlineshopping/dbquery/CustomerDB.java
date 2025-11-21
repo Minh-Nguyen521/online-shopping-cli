@@ -15,12 +15,11 @@ public class CustomerDB {
     }
 
     public boolean addCustomer(Customer customer) {
-        String sql = "INSERT INTO customers (username, password, ranking) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO customers (username, password) VALUES (?, ?)";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, customer.getUsername());
             pstmt.setString(2, customer.getPassword());
-            pstmt.setInt(3, customer.getRanking());
             
             int affectedRows = pstmt.executeUpdate();
             
@@ -53,12 +52,11 @@ public class CustomerDB {
     }
 
     public boolean updateCustomer(Customer customer) {
-        String sql = "UPDATE customers SET username = ?, ranking = ? WHERE id = ?";
+        String sql = "UPDATE customers SET username = ? WHERE id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, customer.getUsername());
-            pstmt.setInt(2, customer.getRanking());
-            pstmt.setInt(3, customer.getId());
+            pstmt.setInt(2, customer.getId());
             
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -92,8 +90,7 @@ public class CustomerDB {
                 return new Customer(
                     rs.getInt("id"),
                     rs.getString("username"),
-                    rs.getString("password"),
-                    rs.getInt("ranking")
+                    rs.getString("password")
                 );
             }
         } catch (SQLException e) {
@@ -113,8 +110,7 @@ public class CustomerDB {
                 return new Customer(
                     rs.getInt("id"),
                     rs.getString("username"),
-                    rs.getString("password"),
-                    rs.getInt("ranking")
+                    rs.getString("password")
                 );
             }
         } catch (SQLException e) {
@@ -133,7 +129,7 @@ public class CustomerDB {
 
     public List<Customer> getAllCustomers() {
         List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM customers ORDER BY ranking DESC, username";
+        String sql = "SELECT * FROM customers ORDER BY username";
         
         try (Statement stmt = dbManager.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -142,49 +138,13 @@ public class CustomerDB {
                 customers.add(new Customer(
                     rs.getInt("id"),
                     rs.getString("username"),
-                    rs.getString("password"),
-                    rs.getInt("ranking")
+                    rs.getString("password")
                 ));
             }
         } catch (SQLException e) {
             System.err.println("Error getting all customers: " + e.getMessage());
         }
         return customers;
-    }
-
-    public List<Customer> getCustomerLeaderboard() {
-        List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM customers ORDER BY ranking DESC LIMIT 10";
-        
-        try (Statement stmt = dbManager.getConnection().createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                customers.add(new Customer(
-                    rs.getInt("id"),
-                    rs.getString("username"),
-                    rs.getString("password"),
-                    rs.getInt("ranking")
-                ));
-            }
-        } catch (SQLException e) {
-            System.err.println("Error getting customer leaderboard: " + e.getMessage());
-        }
-        return customers;
-    }
-
-    public boolean updateRanking(int customerId, int newRanking) {
-        String sql = "UPDATE customers SET ranking = ? WHERE id = ?";
-        
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, newRanking);
-            pstmt.setInt(2, customerId);
-            
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Error updating customer ranking: " + e.getMessage());
-        }
-        return false;
     }
 
     public boolean usernameExists(String username) {

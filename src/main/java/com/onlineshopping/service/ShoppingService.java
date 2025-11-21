@@ -60,10 +60,6 @@ public class ShoppingService {
         return customerDB.updatePassword(currentCustomer.getId(), newPassword);
     }
 
-    public List<Customer> getCustomerLeaderboard() {
-        return customerDB.getCustomerLeaderboard();
-    }
-
     // Product Management
     public List<Product> getAllProducts() {
         return productDB.getAllProducts();
@@ -198,12 +194,8 @@ public class ShoppingService {
             return false;
         }
         
+        // can place order
         if (orderDB.updateOrderStatus(activeOrder.getId(), Order.OrderStatus.DONE)) {
-            // Update customer ranking (increase by 1 for each completed order)
-            int newRanking = currentCustomer.getRanking() + 1;
-            customerDB.updateRanking(currentCustomer.getId(), newRanking);
-            currentCustomer.setRanking(newRanking);
-            
             return true;
         }
         
