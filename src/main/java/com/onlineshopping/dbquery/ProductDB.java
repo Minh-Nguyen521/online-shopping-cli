@@ -43,7 +43,7 @@ public class ProductDB {
     }
 
     public boolean removeProduct(int productId) {
-        String sql = "DELETE FROM products WHERE id = ?";
+        String sql = "DELETE FROM products WHERE product_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setInt(1, productId);
@@ -55,7 +55,7 @@ public class ProductDB {
     }
 
     public boolean updateProduct(Product product) {
-        String sql = "UPDATE products SET name = ?, description = ?, price = ?, stock = ?, category = ? WHERE id = ?";
+        String sql = "UPDATE products SET name = ?, description = ?, price = ?, stock = ?, category = ? WHERE product_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, product.getName());
@@ -73,7 +73,7 @@ public class ProductDB {
     }
 
     public Product getProductById(int productId) {
-        String sql = "SELECT * FROM products WHERE id = ?";
+        String sql = "SELECT * FROM products WHERE product_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setInt(1, productId);
@@ -81,7 +81,7 @@ public class ProductDB {
             
             if (rs.next()) {
                 return new Product(
-                    rs.getInt("id"),
+                    rs.getInt("product_id"),
                     rs.getString("name"),
                     rs.getString("description"),
                     rs.getDouble("price"),
@@ -104,7 +104,7 @@ public class ProductDB {
             
             while (rs.next()) {
                 products.add(new Product(
-                    rs.getInt("id"),
+                    rs.getInt("product_id"),
                     rs.getString("name"),
                     rs.getString("description"),
                     rs.getDouble("price"),
@@ -147,7 +147,7 @@ public class ProductDB {
     }
 
     public boolean updateStock(int productId, int newStock) {
-        String sql = "UPDATE products SET stock = ? WHERE id = ?";
+        String sql = "UPDATE products SET stock = ? WHERE product_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setInt(1, newStock);

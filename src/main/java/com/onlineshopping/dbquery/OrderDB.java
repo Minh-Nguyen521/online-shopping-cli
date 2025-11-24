@@ -61,7 +61,7 @@ public class OrderDB {
             }
             
             // Then remove the order
-            String deleteOrderSql = "DELETE FROM orders WHERE id = ?";
+            String deleteOrderSql = "DELETE FROM orders WHERE order_id = ?";
             try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(deleteOrderSql)) {
                 pstmt.setInt(1, orderId);
                 int affectedRows = pstmt.executeUpdate();
@@ -84,7 +84,7 @@ public class OrderDB {
     }
 
     public boolean updateOrderStatus(int orderId, Order.OrderStatus newStatus) {
-        String sql = "UPDATE orders SET status = ? WHERE id = ?";
+        String sql = "UPDATE orders SET status = ? WHERE order_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, newStatus.name());
@@ -98,7 +98,7 @@ public class OrderDB {
     }
 
     public boolean updateOrderTotal(int orderId, double newTotal) {
-        String sql = "UPDATE orders SET total_amount = ? WHERE id = ?";
+        String sql = "UPDATE orders SET total_amount = ? WHERE order_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setDouble(1, newTotal);
@@ -112,7 +112,7 @@ public class OrderDB {
     }
 
     public Order getOrderById(int orderId) {
-        String sql = "SELECT * FROM orders WHERE id = ?";
+        String sql = "SELECT * FROM orders WHERE order_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setInt(1, orderId);
@@ -120,7 +120,7 @@ public class OrderDB {
             
             if (rs.next()) {
                 Order order = new Order(
-                    rs.getInt("id"),
+                    rs.getInt("order_id"),
                     rs.getInt("customer_id"),
                     rs.getTimestamp("order_date").toLocalDateTime(),
                     Order.OrderStatus.valueOf(rs.getString("status")),
@@ -148,7 +148,7 @@ public class OrderDB {
             
             while (rs.next()) {
                 Order order = new Order(
-                    rs.getInt("id"),
+                    rs.getInt("order_id"),
                     rs.getInt("customer_id"),
                     rs.getTimestamp("order_date").toLocalDateTime(),
                     Order.OrderStatus.valueOf(rs.getString("status")),
@@ -174,7 +174,7 @@ public class OrderDB {
             
             while (rs.next()) {
                 Order order = new Order(
-                    rs.getInt("id"),
+                    rs.getInt("order_id"),
                     rs.getInt("customer_id"),
                     rs.getTimestamp("order_date").toLocalDateTime(),
                     Order.OrderStatus.valueOf(rs.getString("status")),
@@ -200,7 +200,7 @@ public class OrderDB {
             
             if (rs.next()) {
                 Order order = new Order(
-                    rs.getInt("id"),
+                    rs.getInt("order_id"),
                     rs.getInt("customer_id"),
                     rs.getTimestamp("order_date").toLocalDateTime(),
                     Order.OrderStatus.valueOf(rs.getString("status")),
@@ -275,7 +275,7 @@ public class OrderDB {
     }
 
     private boolean updateOrderItemQuantity(int itemId, int newQuantity) {
-        String sql = "UPDATE order_items SET quantity = ? WHERE id = ?";
+        String sql = "UPDATE order_items SET quantity = ? WHERE order_item_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setInt(1, newQuantity);
@@ -298,7 +298,7 @@ public class OrderDB {
             
             if (rs.next()) {
                 return new OrderItem(
-                    rs.getInt("id"),
+                    rs.getInt("order_item_id"),
                     rs.getInt("order_id"),
                     rs.getInt("product_id"),
                     rs.getString("product_name"),
@@ -322,7 +322,7 @@ public class OrderDB {
             
             while (rs.next()) {
                 items.add(new OrderItem(
-                    rs.getInt("id"),
+                    rs.getInt("order_item_id"),
                     rs.getInt("order_id"),
                     rs.getInt("product_id"),
                     rs.getString("product_name"),

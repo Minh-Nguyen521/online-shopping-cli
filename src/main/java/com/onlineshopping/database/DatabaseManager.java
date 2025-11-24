@@ -10,7 +10,7 @@ public class DatabaseManager {
     private static final String DB_HOST = "127.0.0.1";
     private static final String DB_PORT = "3306";
     private static final String DB_NAME = "online_shopping";
-    private static final String DB_USER = "dev";
+    private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "123456"; 
 
     private static final String DATABASE_URL = String.format(
@@ -56,7 +56,7 @@ public class DatabaseManager {
             // Products table
             """
             CREATE TABLE IF NOT EXISTS products (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                product_id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 description TEXT,
                 price DECIMAL(10, 2) NOT NULL,
@@ -65,43 +65,44 @@ public class DatabaseManager {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """,
-            
+
             // Customers table
             """
             CREATE TABLE IF NOT EXISTS customers (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                customer_id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(50) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """,
-            
+
             // Orders table
             """
             CREATE TABLE IF NOT EXISTS orders (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                order_id INT AUTO_INCREMENT PRIMARY KEY,
                 customer_id INT NOT NULL,
                 order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 status VARCHAR(20) NOT NULL DEFAULT 'ON_SHOPPING',
                 total_amount DECIMAL(10, 2) DEFAULT 0.0,
-                FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+                FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
             )
             """,
-            
+
             // Order items table
             """
             CREATE TABLE IF NOT EXISTS order_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                order_item_id INT AUTO_INCREMENT PRIMARY KEY,
                 order_id INT NOT NULL,
                 product_id INT NOT NULL,
                 product_name VARCHAR(255) NOT NULL,
                 price DECIMAL(10, 2) NOT NULL,
                 quantity INT NOT NULL,
-                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-                FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+                FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+                FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
             )
             """
         };
+
 
         try (Statement stmt = connection.createStatement()) {
             for (String sql : createTableStatements) {

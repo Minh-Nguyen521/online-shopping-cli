@@ -40,7 +40,7 @@ public class CustomerDB {
     }
 
     public boolean removeCustomer(int customerId) {
-        String sql = "DELETE FROM customers WHERE id = ?";
+        String sql = "DELETE FROM customers WHERE customer_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setInt(1, customerId);
@@ -52,7 +52,7 @@ public class CustomerDB {
     }
 
     public boolean updateCustomer(Customer customer) {
-        String sql = "UPDATE customers SET username = ? WHERE id = ?";
+        String sql = "UPDATE customers SET username = ? WHERE customer_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, customer.getUsername());
@@ -66,7 +66,7 @@ public class CustomerDB {
     }
 
     public boolean updatePassword(int customerId, String newPassword) {
-        String sql = "UPDATE customers SET password = ? WHERE id = ?";
+        String sql = "UPDATE customers SET password = ? WHERE customer_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, newPassword);
@@ -80,7 +80,7 @@ public class CustomerDB {
     }
 
     public Customer getCustomerById(int customerId) {
-        String sql = "SELECT * FROM customers WHERE id = ?";
+        String sql = "SELECT * FROM customers WHERE customer_id = ?";
         
         try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
             pstmt.setInt(1, customerId);
@@ -88,7 +88,7 @@ public class CustomerDB {
             
             if (rs.next()) {
                 return new Customer(
-                    rs.getInt("id"),
+                    rs.getInt("customer_id"),
                     rs.getString("username"),
                     rs.getString("password")
                 );
@@ -108,7 +108,7 @@ public class CustomerDB {
             
             if (rs.next()) {
                 return new Customer(
-                    rs.getInt("id"),
+                    rs.getInt("customer_id"),
                     rs.getString("username"),
                     rs.getString("password")
                 );
@@ -136,7 +136,7 @@ public class CustomerDB {
             
             while (rs.next()) {
                 customers.add(new Customer(
-                    rs.getInt("id"),
+                    rs.getInt("customer_id"),
                     rs.getString("username"),
                     rs.getString("password")
                 ));
