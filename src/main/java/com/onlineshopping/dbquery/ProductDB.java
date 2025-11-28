@@ -132,7 +132,7 @@ public class ProductDB {
             
             while (rs.next()) {
                 products.add(new Product(
-                    rs.getInt("id"),
+                    rs.getInt("product_id"),
                     rs.getString("name"),
                     rs.getString("description"),
                     rs.getDouble("price"),
