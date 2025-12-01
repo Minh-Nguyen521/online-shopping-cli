@@ -49,40 +49,6 @@ public class OrderDB {
         return false;
     }
 
-    public boolean removeOrder(int orderId) {
-        try {
-            dbManager.getConnection().setAutoCommit(false);
-            
-            // First remove order items
-            String deleteItemsSql = "DELETE FROM order_items WHERE order_id = ?";
-            try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(deleteItemsSql)) {
-                pstmt.setInt(1, orderId);
-                pstmt.executeUpdate();
-            }
-            
-            // Then remove the order
-            String deleteOrderSql = "DELETE FROM orders WHERE order_id = ?";
-            try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(deleteOrderSql)) {
-                pstmt.setInt(1, orderId);
-                int affectedRows = pstmt.executeUpdate();
-                
-                dbManager.getConnection().commit();
-                dbManager.getConnection().setAutoCommit(true);
-                
-                return affectedRows > 0;
-            }
-        } catch (SQLException e) {
-            try {
-                dbManager.getConnection().rollback();
-                dbManager.getConnection().setAutoCommit(true);
-            } catch (SQLException rollbackEx) {
-                System.err.println("Error during rollback: " + rollbackEx.getMessage());
-            }
-            System.err.println("Error removing order: " + e.getMessage());
-        }
-        return false;
-    }
-
     public boolean updateOrderStatus(int orderId, Order.OrderStatus newStatus) {
         String sql = "UPDATE orders SET status = ? WHERE order_id = ?";
         
@@ -161,32 +127,6 @@ public class OrderDB {
             }
         } catch (SQLException e) {
             System.err.println("Error getting orders by customer: " + e.getMessage());
-        }
-        return orders;
-    }
-
-    public List<Order> getAllOrders() {
-        List<Order> orders = new ArrayList<>();
-        String sql = "SELECT * FROM orders ORDER BY order_date DESC";
-        
-        try (Statement stmt = dbManager.getConnection().createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                Order order = new Order(
-                    rs.getInt("order_id"),
-                    rs.getInt("customer_id"),
-                    rs.getTimestamp("order_date").toLocalDateTime(),
-                    Order.OrderStatus.valueOf(rs.getString("status")),
-                    rs.getDouble("total_amount")
-                );
-                
-                // Load order items
-                order.setItems(getOrderItems(order.getId()));
-                orders.add(order);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error getting all orders: " + e.getMessage());
         }
         return orders;
     }

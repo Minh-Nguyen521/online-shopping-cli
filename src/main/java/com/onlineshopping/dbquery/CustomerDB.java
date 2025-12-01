@@ -39,18 +39,6 @@ public class CustomerDB {
         return false;
     }
 
-    public boolean removeCustomer(int customerId) {
-        String sql = "DELETE FROM customers WHERE customer_id = ?";
-        
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, customerId);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Error removing customer: " + e.getMessage());
-        }
-        return false;
-    }
-
     public boolean updateCustomer(Customer customer) {
         String sql = "UPDATE customers SET username = ? WHERE customer_id = ?";
         
@@ -79,26 +67,6 @@ public class CustomerDB {
         return false;
     }
 
-    public Customer getCustomerById(int customerId) {
-        String sql = "SELECT * FROM customers WHERE customer_id = ?";
-        
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, customerId);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return new Customer(
-                    rs.getInt("customer_id"),
-                    rs.getString("username"),
-                    rs.getString("password")
-                );
-            }
-        } catch (SQLException e) {
-            System.err.println("Error getting customer: " + e.getMessage());
-        }
-        return null;
-    }
-
     public Customer getCustomerByUsername(String username) {
         String sql = "SELECT * FROM customers WHERE username = ?";
         
@@ -125,26 +93,6 @@ public class CustomerDB {
             return customer.getPassword().equals(password);
         }
         return false;
-    }
-
-    public List<Customer> getAllCustomers() {
-        List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM customers";
-        
-        try (Statement stmt = dbManager.getConnection().createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                customers.add(new Customer(
-                    rs.getInt("customer_id"),
-                    rs.getString("username"),
-                    rs.getString("password")
-                ));
-            }
-        } catch (SQLException e) {
-            System.err.println("Error getting all customers: " + e.getMessage());
-        }
-        return customers;
     }
 
     public boolean usernameExists(String username) {
