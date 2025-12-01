@@ -15,24 +15,18 @@ public class CustomerDB {
     }
 
     public boolean addCustomer(Customer customer) {
-        String sql = "INSERT INTO customers (username, password) VALUES (?, ?)";
+        String sql = "{CALL add_customer(?, ?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setString(1, customer.getUsername());
-            pstmt.setString(2, customer.getPassword());
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setString(1, customer.getUsername());
+            cstmt.setString(2, customer.getPassword());
+            cstmt.registerOutParameter(3, Types.INTEGER);
             
-            int affectedRows = pstmt.executeUpdate();
+            cstmt.execute();
             
-            if (affectedRows > 0) {
-                // Get the last inserted ID
-                try (Statement stmt = dbManager.getConnection().createStatement();
-                     ResultSet rs = stmt.executeQuery("SELECT LAST_INSERT_ID()")) {
-                    if (rs.next()) {
-                        customer.setId(rs.getInt(1));
-                    }
-                }
-                return true;
-            }
+            int customerId = cstmt.getInt(3);
+            customer.setId(customerId);
+            return true;
         } catch (SQLException e) {
             System.err.println("Error adding customer: " + e.getMessage());
         }
@@ -40,13 +34,14 @@ public class CustomerDB {
     }
 
     public boolean updateCustomer(Customer customer) {
-        String sql = "UPDATE customers SET username = ? WHERE customer_id = ?";
+        String sql = "{CALL update_customer(?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setString(1, customer.getUsername());
-            pstmt.setInt(2, customer.getId());
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, customer.getId());
+            cstmt.setString(2, customer.getUsername());
             
-            return pstmt.executeUpdate() > 0;
+            cstmt.execute();
+            return true;
         } catch (SQLException e) {
             System.err.println("Error updating customer: " + e.getMessage());
         }
@@ -54,13 +49,14 @@ public class CustomerDB {
     }
 
     public boolean updatePassword(int customerId, String newPassword) {
-        String sql = "UPDATE customers SET password = ? WHERE customer_id = ?";
+        String sql = "{CALL update_password(?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setString(1, newPassword);
-            pstmt.setInt(2, customerId);
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, customerId);
+            cstmt.setString(2, newPassword);
             
-            return pstmt.executeUpdate() > 0;
+            cstmt.execute();
+            return true;
         } catch (SQLException e) {
             System.err.println("Error updating customer password: " + e.getMessage());
         }
@@ -68,11 +64,11 @@ public class CustomerDB {
     }
 
     public Customer getCustomerByUsername(String username) {
-        String sql = "SELECT * FROM customers WHERE username = ?";
+        String sql = "{CALL get_customer_by_username(?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            ResultSet rs = pstmt.executeQuery();
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setString(1, username);
+            ResultSet rs = cstmt.executeQuery();
             
             if (rs.next()) {
                 return new Customer(
@@ -96,12 +92,14 @@ public class CustomerDB {
     }
 
     public boolean usernameExists(String username) {
-        String sql = "SELECT 1 FROM customers WHERE username = ?";
+        String sql = "{CALL customer_exists(?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next();
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setString(1, username);
+            ResultSet rs = cstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("exists_flag") == 1;
+            }
         } catch (SQLException e) {
             System.err.println("Error checking username existence: " + e.getMessage());
         }

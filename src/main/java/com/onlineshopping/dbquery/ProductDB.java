@@ -15,27 +15,21 @@ public class ProductDB {
     }
 
     public boolean addProduct(Product product) {
-        String sql = "INSERT INTO products (name, description, price, stock, category) VALUES (?, ?, ?, ?, ?)";
+        String sql = "{CALL add_product(?, ?, ?, ?, ?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setString(1, product.getName());
-            pstmt.setString(2, product.getDescription());
-            pstmt.setDouble(3, product.getPrice());
-            pstmt.setInt(4, product.getStock());
-            pstmt.setString(5, product.getCategory());
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setString(1, product.getName());
+            cstmt.setString(2, product.getDescription());
+            cstmt.setDouble(3, product.getPrice());
+            cstmt.setInt(4, product.getStock());
+            cstmt.setString(5, product.getCategory());
+            cstmt.registerOutParameter(6, Types.INTEGER);
             
-            int affectedRows = pstmt.executeUpdate();
+            cstmt.execute();
             
-            if (affectedRows > 0) {
-                // Get the last inserted ID
-                try (Statement stmt = dbManager.getConnection().createStatement();
-                     ResultSet rs = stmt.executeQuery("SELECT LAST_INSERT_ID()")) {
-                    if (rs.next()) {
-                        product.setId(rs.getInt(1));
-                    }
-                }
-                return true;
-            }
+            int productId = cstmt.getInt(6);
+            product.setId(productId);
+            return true;
         } catch (SQLException e) {
             System.err.println("Error adding product: " + e.getMessage());
         }
@@ -43,11 +37,12 @@ public class ProductDB {
     }
 
     public boolean removeProduct(int productId) {
-        String sql = "DELETE FROM products WHERE product_id = ?";
+        String sql = "{CALL remove_product(?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, productId);
-            return pstmt.executeUpdate() > 0;
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, productId);
+            cstmt.execute();
+            return true;
         } catch (SQLException e) {
             System.err.println("Error removing product: " + e.getMessage());
         }
@@ -55,17 +50,18 @@ public class ProductDB {
     }
 
     public boolean updateProduct(Product product) {
-        String sql = "UPDATE products SET name = ?, description = ?, price = ?, stock = ?, category = ? WHERE product_id = ?";
+        String sql = "{CALL update_product(?, ?, ?, ?, ?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setString(1, product.getName());
-            pstmt.setString(2, product.getDescription());
-            pstmt.setDouble(3, product.getPrice());
-            pstmt.setInt(4, product.getStock());
-            pstmt.setString(5, product.getCategory());
-            pstmt.setInt(6, product.getId());
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, product.getId());
+            cstmt.setString(2, product.getName());
+            cstmt.setString(3, product.getDescription());
+            cstmt.setDouble(4, product.getPrice());
+            cstmt.setInt(5, product.getStock());
+            cstmt.setString(6, product.getCategory());
             
-            return pstmt.executeUpdate() > 0;
+            cstmt.execute();
+            return true;
         } catch (SQLException e) {
             System.err.println("Error updating product: " + e.getMessage());
         }
@@ -73,11 +69,11 @@ public class ProductDB {
     }
 
     public Product getProductById(int productId) {
-        String sql = "SELECT * FROM products WHERE product_id = ?";
+        String sql = "{CALL get_product_by_id(?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, productId);
-            ResultSet rs = pstmt.executeQuery();
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, productId);
+            ResultSet rs = cstmt.executeQuery();
             
             if (rs.next()) {
                 return new Product(
@@ -97,10 +93,10 @@ public class ProductDB {
 
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM products ORDER BY name";
+        String sql = "{CALL get_all_products()}";
         
-        try (Statement stmt = dbManager.getConnection().createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql);
+             ResultSet rs = cstmt.executeQuery()) {
             
             while (rs.next()) {
                 products.add(new Product(
@@ -120,15 +116,12 @@ public class ProductDB {
 
     public List<Product> searchProducts(String searchTerm) {
         List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM products WHERE name LIKE ? OR description LIKE ? OR category LIKE ? ORDER BY name";
+        String sql = "{CALL search_products(?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            String searchPattern = "%" + searchTerm + "%";
-            pstmt.setString(1, searchPattern);
-            pstmt.setString(2, searchPattern);
-            pstmt.setString(3, searchPattern);
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setString(1, searchTerm);
             
-            ResultSet rs = pstmt.executeQuery();
+            ResultSet rs = cstmt.executeQuery();
             
             while (rs.next()) {
                 products.add(new Product(
@@ -147,13 +140,14 @@ public class ProductDB {
     }
 
     public boolean updateStock(int productId, int newStock) {
-        String sql = "UPDATE products SET stock = ? WHERE product_id = ?";
+        String sql = "{CALL update_stock(?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, newStock);
-            pstmt.setInt(2, productId);
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, productId);
+            cstmt.setInt(2, newStock);
             
-            return pstmt.executeUpdate() > 0;
+            cstmt.execute();
+            return true;
         } catch (SQLException e) {
             System.err.println("Error updating product stock: " + e.getMessage());
         }

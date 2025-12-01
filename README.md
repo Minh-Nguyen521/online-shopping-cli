@@ -51,31 +51,35 @@
 ## Database Schema
 
 ### Products Table
-- `id` (PRIMARY KEY, AUTO INCREMENT)
-- `name` (NOT NULL)
-- `description`
-- `price` (NOT NULL)
-- `stock` (NOT NULL, DEFAULT 0)
-- `category`
-- `created_at` (TIMESTAMP)
+
+- `product_id` (PRIMARY KEY, AUTO INCREMENT)
+- `name` (VARCHAR(255), NOT NULL)
+- `description` (TEXT)
+- `price` (DECIMAL(10,2), NOT NULL)
+- `stock` (INT, NOT NULL, DEFAULT 0)
+- `category` (VARCHAR(100))
+- `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 
 ### Customers Table
-- `id` (PRIMARY KEY, AUTO INCREMENT)
-- `username` (UNIQUE, NOT NULL)
-- `password` (NOT NULL)
-- `created_at` (TIMESTAMP)
+
+- `customer_id` (PRIMARY KEY, AUTO INCREMENT)
+- `username` (VARCHAR(50), UNIQUE, NOT NULL)
+- `password` (VARCHAR(255), NOT NULL)
+- `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 
 ### Orders Table
-- `id` (PRIMARY KEY, AUTO INCREMENT)
-- `customer_id` (FOREIGN KEY)
-- `order_date` (TIMESTAMP)
-- `status` (NOT NULL, DEFAULT 'ON_SHOPPING')
-- `total_amount` (DEFAULT 0.0)
+
+- `order_id` (PRIMARY KEY, AUTO INCREMENT)
+- `customer_id` (FOREIGN KEY → customers.customer_id, ON DELETE CASCADE)
+- `order_date` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+- `status` (VARCHAR(20), NOT NULL, DEFAULT 'ON_SHOPPING')
+- `total_amount` (DECIMAL(10,2), DEFAULT 0.0)
 
 ### Order Items Table
-- `id` (PRIMARY KEY, AUTO INCREMENT)
-- `order_id` (FOREIGN KEY)
-- `product_id` (FOREIGN KEY)
-- `product_name` (NOT NULL)
-- `price` (NOT NULL)
-- `quantity` (NOT NULL)
+
+- `order_item_id` (PRIMARY KEY, AUTO INCREMENT)
+- `order_id` (FOREIGN KEY → orders.order_id, ON DELETE CASCADE)
+- `product_id` (FOREIGN KEY → products.product_id, ON DELETE CASCADE)
+- `product_name` (VARCHAR(255), NOT NULL)
+- `price` (DECIMAL(10,2), NOT NULL)
+- `quantity` (INT, NOT NULL)
