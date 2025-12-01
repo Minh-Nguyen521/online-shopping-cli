@@ -73,8 +73,8 @@ INSERT INTO products (name, description, price, stock, category) VALUES
 ('Mountain Bike', '21-speed mountain bicycle', 599.99, 15, 'Sports & Outdoors'),
 ('Water Bottle', 'Insulated stainless steel bottle', 19.99, 200, 'Sports & Outdoors');
 
-
 DELIMITER $$
+
 CREATE PROCEDURE add_product(
     IN p_name        VARCHAR(255),
     IN p_description TEXT,
@@ -218,6 +218,201 @@ BEGIN
         THEN 1
         ELSE 0
     END AS exists_flag;
+END $$
+
+CREATE PROCEDURE add_order (
+    IN  p_customer_id INT,
+    IN  p_order_date  DATETIME,
+    IN  p_status      VARCHAR(20),
+    IN  p_total_amount DECIMAL(10,2),
+    OUT p_order_id    INT
+)
+BEGIN
+    INSERT INTO orders (customer_id, order_date, status, total_amount)
+    VALUES (p_customer_id,
+            COALESCE(p_order_date, NOW()),
+            p_status,
+            p_total_amount);
+
+    SET p_order_id = LAST_INSERT_ID();
+END $$
+
+
+CREATE PROCEDURE update_order_status (
+    IN p_order_id INT,
+    IN p_status   VARCHAR(20)
+)
+BEGIN
+    UPDATE orders
+    SET status = p_status
+    WHERE order_id = p_order_id;
+END $$
+
+
+CREATE PROCEDURE update_order_total (
+    IN p_order_id   INT,
+    IN p_total_amt  DECIMAL(10,2)
+)
+BEGIN
+    UPDATE orders
+    SET total_amount = p_total_amt
+    WHERE order_id = p_order_id;
+END $$
+
+
+CREATE PROCEDURE get_order_by_id (
+    IN p_order_id INT
+)
+BEGIN
+    SELECT order_id,
+           customer_id,
+           order_date,
+           status,
+           total_amount
+    FROM orders
+    WHERE order_id = p_order_id;
+END $$
+
+
+CREATE PROCEDURE get_orders_by_customer_id (
+    IN p_customer_id INT
+)
+BEGIN
+    SELECT order_id,
+           customer_id,
+           order_date,
+           status,
+           total_amount
+    FROM orders
+    WHERE customer_id = p_customer_id
+    ORDER BY order_date DESC;
+END $$
+
+
+CREATE PROCEDURE get_active_order_by_customer_id (
+    IN p_customer_id INT
+)
+BEGIN
+    SELECT order_id,
+           customer_id,
+           order_date,
+           status,
+           total_amount
+    FROM orders
+    WHERE customer_id = p_customer_id
+      AND status = 'ON_SHOPPING'
+    ORDER BY order_date DESC
+    LIMIT 1;
+END $$
+
+
+CREATE PROCEDURE add_order_item (
+    IN  p_order_id      INT,
+    IN  p_product_id    INT,
+    IN  p_product_name  VARCHAR(255),
+    IN  p_price         DECIMAL(10,2),
+    IN  p_quantity      INT,
+    OUT p_order_item_id INT
+)
+BEGIN
+    INSERT INTO order_items (order_id, product_id, product_name, price, quantity)
+    VALUES (p_order_id, p_product_id, p_product_name, p_price, p_quantity);
+
+    SET p_order_item_id = LAST_INSERT_ID();
+END $$
+
+
+CREATE PROCEDURE get_order_item (
+    IN p_order_id   INT,
+    IN p_product_id INT
+)
+BEGIN
+    SELECT order_item_id,
+           order_id,
+           product_id,
+           product_name,
+           price,
+           quantity
+    FROM order_items
+    WHERE order_id = p_order_id
+      AND product_id = p_product_id;
+END $$
+
+
+CREATE PROCEDURE get_order_items (
+    IN p_order_id INT
+)
+BEGIN
+    SELECT order_item_id,
+           order_id,
+           product_id,
+           product_name,
+           price,
+           quantity
+    FROM order_items
+    WHERE order_id = p_order_id;
+END $$
+
+
+CREATE PROCEDURE update_order_item_quantity (
+    IN p_order_item_id INT,
+    IN p_quantity      INT
+)
+BEGIN
+    UPDATE order_items
+    SET quantity = p_quantity
+    WHERE order_item_id = p_order_item_id;
+END $$
+
+
+CREATE PROCEDURE remove_item_from_order (
+    IN p_order_id   INT,
+    IN p_product_id INT
+)
+BEGIN
+    DELETE FROM order_items
+    WHERE order_id = p_order_id
+      AND product_id = p_product_id;
+END $$
+
+
+CREATE PROCEDURE add_item_to_order (
+    IN  p_order_id      INT,
+    IN  p_product_id    INT,
+    IN  p_product_name  VARCHAR(255),
+    IN  p_price         DECIMAL(10,2),
+    IN  p_quantity      INT,
+    OUT p_order_item_id INT
+)
+BEGIN
+    DECLARE v_item_id      INT;
+    DECLARE v_old_quantity INT;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+        SET v_item_id = NULL;
+
+    -- Check if item already exists
+    SELECT order_item_id, quantity
+      INTO v_item_id, v_old_quantity
+    FROM order_items
+    WHERE order_id = p_order_id
+      AND product_id = p_product_id
+    LIMIT 1;
+
+    IF v_item_id IS NULL THEN
+        -- Insert new item
+        INSERT INTO order_items (order_id, product_id, product_name, price, quantity)
+        VALUES (p_order_id, p_product_id, p_product_name, p_price, p_quantity);
+
+        SET p_order_item_id = LAST_INSERT_ID();
+    ELSE
+        -- Update quantity
+        UPDATE order_items
+        SET quantity = v_old_quantity + p_quantity
+        WHERE order_item_id = v_item_id;
+
+        SET p_order_item_id = v_item_id;
+    END IF;
 END $$
 
 DELIMITER ;

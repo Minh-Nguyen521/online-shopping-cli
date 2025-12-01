@@ -17,32 +17,26 @@ public class OrderDB {
     }
 
     public boolean addOrder(Order order) {
-        String sql = "INSERT INTO orders (customer_id, order_date, status, total_amount) VALUES (?, ?, ?, ?)";
+        String sql = "{CALL add_order(?, ?, ?, ?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, order.getCustomerId());
-            pstmt.setTimestamp(2, Timestamp.valueOf(order.getOrderDate()));
-            pstmt.setString(3, order.getStatus().name());
-            pstmt.setDouble(4, order.getTotalAmount());
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, order.getCustomerId());
+            cstmt.setTimestamp(2, Timestamp.valueOf(order.getOrderDate()));
+            cstmt.setString(3, order.getStatus().name());
+            cstmt.setDouble(4, order.getTotalAmount());
+            cstmt.registerOutParameter(5, Types.INTEGER);
             
-            int affectedRows = pstmt.executeUpdate();
+            cstmt.execute();
             
-            if (affectedRows > 0) {
-                // Get the last inserted ID
-                try (Statement stmt = dbManager.getConnection().createStatement();
-                     ResultSet rs = stmt.executeQuery("SELECT LAST_INSERT_ID()")) {
-                    if (rs.next()) {
-                        order.setId(rs.getInt(1));
-                    }
-                }
-                
-                // Add order items
-                for (OrderItem item : order.getItems()) {
-                    addOrderItem(order.getId(), item);
-                }
-                
-                return true;
+            int orderId = cstmt.getInt(5);
+            order.setId(orderId);
+            
+            // Add order items
+            for (OrderItem item : order.getItems()) {
+                addOrderItem(orderId, item);
             }
+            
+            return true;
         } catch (SQLException e) {
             System.err.println("Error adding order: " + e.getMessage());
         }
@@ -50,13 +44,14 @@ public class OrderDB {
     }
 
     public boolean updateOrderStatus(int orderId, Order.OrderStatus newStatus) {
-        String sql = "UPDATE orders SET status = ? WHERE order_id = ?";
+        String sql = "{CALL update_order_status(?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setString(1, newStatus.name());
-            pstmt.setInt(2, orderId);
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, orderId);
+            cstmt.setString(2, newStatus.name());
             
-            return pstmt.executeUpdate() > 0;
+            cstmt.execute();
+            return true;
         } catch (SQLException e) {
             System.err.println("Error updating order status: " + e.getMessage());
         }
@@ -64,13 +59,14 @@ public class OrderDB {
     }
 
     public boolean updateOrderTotal(int orderId, double newTotal) {
-        String sql = "UPDATE orders SET total_amount = ? WHERE order_id = ?";
+        String sql = "{CALL update_order_total(?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setDouble(1, newTotal);
-            pstmt.setInt(2, orderId);
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, orderId);
+            cstmt.setDouble(2, newTotal);
             
-            return pstmt.executeUpdate() > 0;
+            cstmt.execute();
+            return true;
         } catch (SQLException e) {
             System.err.println("Error updating order total: " + e.getMessage());
         }
@@ -78,11 +74,11 @@ public class OrderDB {
     }
 
     public Order getOrderById(int orderId) {
-        String sql = "SELECT * FROM orders WHERE order_id = ?";
+        String sql = "{CALL get_order_by_id(?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, orderId);
-            ResultSet rs = pstmt.executeQuery();
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, orderId);
+            ResultSet rs = cstmt.executeQuery();
             
             if (rs.next()) {
                 Order order = new Order(
@@ -106,11 +102,11 @@ public class OrderDB {
 
     public List<Order> getOrdersByCustomerId(int customerId) {
         List<Order> orders = new ArrayList<>();
-        String sql = "SELECT * FROM orders WHERE customer_id = ? ORDER BY order_date DESC";
+        String sql = "{CALL get_orders_by_customer_id(?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, customerId);
-            ResultSet rs = pstmt.executeQuery();
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, customerId);
+            ResultSet rs = cstmt.executeQuery();
             
             while (rs.next()) {
                 Order order = new Order(
@@ -132,11 +128,11 @@ public class OrderDB {
     }
 
     public Order getActiveOrderByCustomerId(int customerId) {
-        String sql = "SELECT * FROM orders WHERE customer_id = ? AND status = 'ON_SHOPPING' ORDER BY order_date DESC LIMIT 1";
+        String sql = "{CALL get_active_order_by_customer_id(?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, customerId);
-            ResultSet rs = pstmt.executeQuery();
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, customerId);
+            ResultSet rs = cstmt.executeQuery();
             
             if (rs.next()) {
                 Order order = new Order(
@@ -159,28 +155,22 @@ public class OrderDB {
     }
 
     private boolean addOrderItem(int orderId, OrderItem item) {
-        String sql = "INSERT INTO order_items (order_id, product_id, product_name, price, quantity) VALUES (?, ?, ?, ?, ?)";
+        String sql = "{CALL add_order_item(?, ?, ?, ?, ?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, orderId);
-            pstmt.setInt(2, item.getProductId());
-            pstmt.setString(3, item.getProductName());
-            pstmt.setDouble(4, item.getPrice());
-            pstmt.setInt(5, item.getQuantity());
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, orderId);
+            cstmt.setInt(2, item.getProductId());
+            cstmt.setString(3, item.getProductName());
+            cstmt.setDouble(4, item.getPrice());
+            cstmt.setInt(5, item.getQuantity());
+            cstmt.registerOutParameter(6, Types.INTEGER);
             
-            int affectedRows = pstmt.executeUpdate();
+            cstmt.execute();
             
-            if (affectedRows > 0) {
-                // Get the last inserted ID
-                try (Statement stmt = dbManager.getConnection().createStatement();
-                     ResultSet rs = stmt.executeQuery("SELECT LAST_INSERT_ID()")) {
-                    if (rs.next()) {
-                        item.setId(rs.getInt(1));
-                        item.setOrderId(orderId);
-                    }
-                }
-                return true;
-            }
+            int itemId = cstmt.getInt(6);
+            item.setId(itemId);
+            item.setOrderId(orderId);
+            return true;
         } catch (SQLException e) {
             System.err.println("Error adding order item: " + e.getMessage());
         }
@@ -188,26 +178,37 @@ public class OrderDB {
     }
 
     public boolean addItemToOrder(int orderId, OrderItem item) {
-        // Check if item already exists in order
-        OrderItem existingItem = getOrderItem(orderId, item.getProductId());
+        String sql = "{CALL add_item_to_order(?, ?, ?, ?, ?, ?)}";
         
-        if (existingItem != null) {
-            // Update quantity
-            return updateOrderItemQuantity(existingItem.getId(), existingItem.getQuantity() + item.getQuantity());
-        } else {
-            // Add new item
-            return addOrderItem(orderId, item);
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, orderId);
+            cstmt.setInt(2, item.getProductId());
+            cstmt.setString(3, item.getProductName());
+            cstmt.setDouble(4, item.getPrice());
+            cstmt.setInt(5, item.getQuantity());
+            cstmt.registerOutParameter(6, Types.INTEGER);
+            
+            cstmt.execute();
+            
+            int itemId = cstmt.getInt(6);
+            item.setId(itemId);
+            item.setOrderId(orderId);
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error adding item to order: " + e.getMessage());
         }
+        return false;
     }
 
     public boolean removeItemFromOrder(int orderId, int productId) {
-        String sql = "DELETE FROM order_items WHERE order_id = ? AND product_id = ?";
+        String sql = "{CALL remove_item_from_order(?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, orderId);
-            pstmt.setInt(2, productId);
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, orderId);
+            cstmt.setInt(2, productId);
             
-            return pstmt.executeUpdate() > 0;
+            cstmt.execute();
+            return true;
         } catch (SQLException e) {
             System.err.println("Error removing item from order: " + e.getMessage());
         }
@@ -215,13 +216,14 @@ public class OrderDB {
     }
 
     private boolean updateOrderItemQuantity(int itemId, int newQuantity) {
-        String sql = "UPDATE order_items SET quantity = ? WHERE order_item_id = ?";
+        String sql = "{CALL update_order_item_quantity(?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, newQuantity);
-            pstmt.setInt(2, itemId);
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, itemId);
+            cstmt.setInt(2, newQuantity);
             
-            return pstmt.executeUpdate() > 0;
+            cstmt.execute();
+            return true;
         } catch (SQLException e) {
             System.err.println("Error updating order item quantity: " + e.getMessage());
         }
@@ -229,12 +231,12 @@ public class OrderDB {
     }
 
     private OrderItem getOrderItem(int orderId, int productId) {
-        String sql = "SELECT * FROM order_items WHERE order_id = ? AND product_id = ?";
+        String sql = "{CALL get_order_item(?, ?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, orderId);
-            pstmt.setInt(2, productId);
-            ResultSet rs = pstmt.executeQuery();
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, orderId);
+            cstmt.setInt(2, productId);
+            ResultSet rs = cstmt.executeQuery();
             
             if (rs.next()) {
                 return new OrderItem(
@@ -254,11 +256,11 @@ public class OrderDB {
 
     private List<OrderItem> getOrderItems(int orderId) {
         List<OrderItem> items = new ArrayList<>();
-        String sql = "SELECT * FROM order_items WHERE order_id = ?";
+        String sql = "{CALL get_order_items(?)}";
         
-        try (PreparedStatement pstmt = dbManager.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, orderId);
-            ResultSet rs = pstmt.executeQuery();
+        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
+            cstmt.setInt(1, orderId);
+            ResultSet rs = cstmt.executeQuery();
             
             while (rs.next()) {
                 items.add(new OrderItem(
