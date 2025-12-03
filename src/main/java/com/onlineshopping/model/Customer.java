@@ -7,6 +7,7 @@ public class Customer {
 
     public Customer() {}
 
+    // for new customer registration
     public Customer(String username, String password) {
         this.username = username;
         this.password = password;

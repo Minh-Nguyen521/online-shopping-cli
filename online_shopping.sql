@@ -198,7 +198,6 @@ BEGIN
     WHERE customer_id = p_customer_id;
 END $$
 
-
 CREATE PROCEDURE get_customer_by_username (
     IN p_username VARCHAR(50)
 )
@@ -207,7 +206,6 @@ BEGIN
     FROM customers
     WHERE username = p_username;
 END $$
-
 
 CREATE PROCEDURE customer_exists (
     IN p_username VARCHAR(50)
@@ -230,7 +228,7 @@ CREATE PROCEDURE add_order (
 BEGIN
     INSERT INTO orders (customer_id, order_date, status, total_amount)
     VALUES (p_customer_id,
-            COALESCE(p_order_date, NOW()),
+            NOW(),
             p_status,
             p_total_amount);
 
@@ -320,24 +318,6 @@ BEGIN
 
     SET p_order_item_id = LAST_INSERT_ID();
 END $$
-
-
-CREATE PROCEDURE get_order_item (
-    IN p_order_id   INT,
-    IN p_product_id INT
-)
-BEGIN
-    SELECT order_item_id,
-           order_id,
-           product_id,
-           product_name,
-           price,
-           quantity
-    FROM order_items
-    WHERE order_id = p_order_id
-      AND product_id = p_product_id;
-END $$
-
 
 CREATE PROCEDURE get_order_items (
     IN p_order_id INT

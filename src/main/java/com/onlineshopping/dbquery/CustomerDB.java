@@ -33,21 +33,6 @@ public class CustomerDB {
         return false;
     }
 
-    public boolean updateCustomer(Customer customer) {
-        String sql = "{CALL update_customer(?, ?)}";
-        
-        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
-            cstmt.setInt(1, customer.getId());
-            cstmt.setString(2, customer.getUsername());
-            
-            cstmt.execute();
-            return true;
-        } catch (SQLException e) {
-            System.err.println("Error updating customer: " + e.getMessage());
-        }
-        return false;
-    }
-
     public boolean updatePassword(int customerId, String newPassword) {
         String sql = "{CALL update_password(?, ?)}";
         

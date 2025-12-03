@@ -230,30 +230,6 @@ public class OrderDB {
         return false;
     }
 
-    private OrderItem getOrderItem(int orderId, int productId) {
-        String sql = "{CALL get_order_item(?, ?)}";
-        
-        try (CallableStatement cstmt = dbManager.getConnection().prepareCall(sql)) {
-            cstmt.setInt(1, orderId);
-            cstmt.setInt(2, productId);
-            ResultSet rs = cstmt.executeQuery();
-            
-            if (rs.next()) {
-                return new OrderItem(
-                    rs.getInt("order_item_id"),
-                    rs.getInt("order_id"),
-                    rs.getInt("product_id"),
-                    rs.getString("product_name"),
-                    rs.getDouble("price"),
-                    rs.getInt("quantity")
-                );
-            }
-        } catch (SQLException e) {
-            System.err.println("Error getting order item: " + e.getMessage());
-        }
-        return null;
-    }
-
     private List<OrderItem> getOrderItems(int orderId) {
         List<OrderItem> items = new ArrayList<>();
         String sql = "{CALL get_order_items(?)}";
